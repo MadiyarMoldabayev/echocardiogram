@@ -1,12 +1,12 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-import xgboost
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
-# Load the trained XGBoost model
-model = xgboost.XGBClassifier(min_child_weight=3, max_depth=8, learning_rate=0.05, gamma=0.0)
-model.load_model("xgboost_model.bin")  # Replace "xgboost_model.bin" with the actual file name of your model
+# Load the trained Random Forest model
+model = RandomForestClassifier(max_depth=6)
+model.fit(X_train, y_train)  # Assuming X_train and y_train are defined
 
 # Define the features required for prediction
 features = ['survival', 'age', 'pericardialeffusion', 'fractionalshortening', 'epss', 'lvdd', 'wallmotion-score', 'wallmotion-index', 'mult']
