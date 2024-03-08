@@ -26,25 +26,26 @@ def main():
     survival = st.number_input("Enter Survival", value=0)
     alive = st.number_input("Enter Alive Value", value=0)
 
-    # Convert pericardial effusion to binary (0 or 1)
-    pericardial_effusion = 1 if pericardial_effusion == "Present" else 0
+    if st.button("Submit"):
+        # Convert pericardial effusion to binary (0 or 1)
+        pericardial_effusion = 1 if pericardial_effusion == "Present" else 0
 
-    # Create a DataFrame from user input
-    user_data = pd.DataFrame([[wallmotion_score, pericardial_effusion, epss, lvdd, mult, age, fractional_shortening, survival, alive]], columns=features)
+        # Create a DataFrame from user input
+        user_data = pd.DataFrame([[wallmotion_score, pericardial_effusion, epss, lvdd, mult, age, fractional_shortening, survival, alive]], columns=features)
 
-    # Standardize the user input data
-    scaler = StandardScaler()
-    user_data_scaled = scaler.fit_transform(user_data)
+        # Standardize the user input data
+        scaler = StandardScaler()
+        user_data_scaled = scaler.fit_transform(user_data)
 
-    # Make prediction
-    prediction = model.predict(user_data_scaled)
+        # Make prediction
+        prediction = model.predict(user_data_scaled)
 
-    # Display prediction
-    st.subheader("Prediction")
-    if prediction[0] == 1:
-        st.write("The model predicts that the patient is alive.")
-    else:
-        st.write("The model predicts that the patient is not alive.")
+        # Display prediction
+        st.subheader("Prediction")
+        if prediction[0] == 1:
+            st.write("The model predicts that the patient is alive.")
+        else:
+            st.write("The model predicts that the patient is not alive.")
 
 if __name__ == "__main__":
     main()
