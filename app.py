@@ -2,67 +2,109 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+import xgboost
 import matplotlib.pyplot as plt
-import seaborn as sns
-import xgboost  # Assuming you're using xgboost for prediction
 
-# Load the pre-processed data (assuming it's saved as a CSV)
-processed_data = pd.read_csv('processed_echocardiogram.csv')
 
-# Load the trained model (assuming it's saved as a pickle file)
-with open('heart_disease_model.pkl', 'rb') as file:
-    model = xgboost.XGBClassifier()  # Assuming XGBoost model
-    model.load_model(file)
+# Load the original data
+data = pd.read_csv('echocardiogram.csv')
 
-# Define features and target variable based on pre-processed data
-features = processed_data.drop('alive', axis=1).columns
-label = ['alive']
+# Preprocessing steps (already included in your original code)
+data = data.drop(['name', 'group', 'aliveat1'], axis=1)
+data = data.dropna(subset=['alive'])
+discrete_features = ['pericardialeffusion']
+continuous_features = data.drop(['pericardialeffusion', 'alive'], axis=1).columns
 
-# Function to preprocess user data
-def preprocess_data(user_data):
-  # Convert pericardial effusion to binary (0 or 1)
-  user_data["pericardialeffusion"] = 1 if user_data["pericardialeffusion"] == "Present" else 0
+# ... (rest of preprocessing steps as in your original code)
+# %%
+for feature in continuous_features:
+    data.boxplot(feature)
+    plt.title(feature)
+    plt.show()
 
-  # Create a DataFrame from user input
-  user_df = pd.DataFrame([user_data], columns=features)
+# %%
+features_with_outliers = ['wallmotion-score', 'wallmotion-index', 'mult']
 
-  # Standardize user data using the scaler from pre-processing (assuming it's saved)
-  # You'll need to load the scaler object from the pre-processing step
-  # scaler = ... (load scaler)
-  # user_df[continuous_features] = scaler.transform(user_df[continuous_features])
 
-  return user_df
+# %%
+for feature in continuous_features:
+    if feature in features_with_outliers:
+        data[feature].fillna(data[feature].median(), inplace=True)
+    else:
+        data[feature].fillna(data[feature].mean(), inplace=True)
+
+# %%
+from sklearn.neighbors import LocalOutlierFactor
+lof = LocalOutlierFactor()
+outliers_rows = lof.fit_predict(data)
+
+# %%
+mask = outliers_rows != -1
+
+
+# %%
+data.isnull().sum()
+
+
+# %%
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# %%
+data = data[mask]
+
+
+# %%
+from sklearn.preprocessing import StandardScaler
+
+data1 = pd.get_dummies(data, columns = discrete_features, drop_first = True)
+scaler = StandardScaler().fit(data1[continuous_features])
+
+# Load the trained XGBoost model
+model = xgboost.XGBClassifier()
+model.load_model("xgboost_model.json")  # Replace "xgboost_model.bin" with the actual file name of your model
+
+# Define the features required for prediction
 
 # Create the Streamlit web app
 def main():
-  st.title("Heart Disease Prediction")
+    st.title("Heart Disease Prediction")
 
-  # Collect user input
-  survival = st.number_input("Enter Survival", value=20, min_value=9, max_value=31, step=1)
-  age = st.number_input("Enter Age", value=50, min_value=45, max_value=81, step=1)
-  pericardial_effusion = st.selectbox("Pericardial Effusion", ["None", "Present"])
-  fractional_shortening = st.number_input("Enter Fractional Shortening", value=0.15, min_value=0.0, max_value=0.5, step=0.01)
-  epss = st.number_input("Enter EPSS Value", value=12.0, min_value=0.0, max_value=27.0, step=0.1)
-  lvdd = st.number_input("Enter LVDD Value", value=5.0, min_value=3.0, max_value=7.0, step=0.1)
-  wallmotion_score = st.slider("Enter Wallmotion Score", min_value=5, max_value=24, value=14, step=1)
-  wallmotion_index = st.slider("Enter Wallmotion Index Value", min_value=1.0, max_value=1.5, value=1.0, step=0.01)
-  mult = st.slider("Enter Mult Value", min_value=0.5, max_value=1.0, value=0.5, step=0.01)
+    # Collect user input
+    survival = st.number_input("Enter Survival", value=10, min_value=9, max_value=31, step=1)
+    age = st.number_input("Enter Age", value=50, min_value=45, max_value=81, step=1)
+    pericardialeffusion = st.selectbox("Pericardial Effusion", ["None", "Present"])
+    fractionalshortening = st.number_input("Enter Fractional Shortening", value=0.15, min_value=0.0, max_value=0.5, step=0.01)
+    epss = st.number_input("Enter EPSS Value", value=12.0, min_value=0.0, max_value=27.0, step=0.1)
+    lvdd = st.number_input("Enter LVDD Value", value=5.0, min_value=3.0, max_value=7.0, step=0.1)
+    wallmotion_score = st.slider("Enter Wallmotion Score", min_value=5, max_value=24, value=14, step=1)
+    wallmotion_index = st.slider("Enter Wallmotion Index Value", min_value=1.0, max_value=3.0, value=1.0, step=0.01)
+    mult = st.slider("Enter Mult Value", min_value=0.5, max_value=1.0, value=0.5, step=0.01)
 
-  if st.button("Submit"):
-    # Preprocess user data
-    user_data = preprocess_data({'survival': survival, 'age': age, 'pericardialeffusion': pericardial_effusion,
-                                 'fractionalshortening': fractional_shortening, 'epss': epss, 'lvdd': lvdd,
-                                 'wallmotion-score': wallmotion_score, 'wallmotion-index': wallmotion_index, 'mult': mult})
+    if st.button("Submit"):
+        # Convert pericardial effusion to binary (0 or 1)
+        pericardialeffusion = True if pericardialeffusion == "Present" else False
+        features = ['survival', 'age', 'fractionalshortening', 'epss', 'lvdd', 'wallmotion-score', 'wallmotion-index', 'mult' ,'pericardialeffusion']
 
-    # Make prediction
-    prediction = model.predict(user_data)
+        # Create a DataFrame from user input
+        user_data = pd.DataFrame([[survival,age,fractionalshortening,epss,lvdd,wallmotion_score,wallmotion_index,mult,pericardialeffusion]], columns=features)
 
-    # Display prediction
-    st.subheader("Prediction")
-    if prediction[0] == 1:
-      st.write("The model predicts that the patient is alive.")
-    else:
-      st.write("The model predicts that the patient is not alive.")
+        # Standardize the user input data
+        user_data[continuous_features] = scaler.transform(user_data[continuous_features])
+
+        # Make prediction
+        prediction = model.predict(user_data)
+        
+        # Display prediction
+        st.subheader("Prediction")
+        if prediction[0] == 1:
+            st.write("The model predicts that the patient is alive.")
+        else:
+            st.write(user_data)
+            st.write("The model predicts that the patient is not alive.")
 
 if __name__ == "__main__":
-  main()
+    main()
