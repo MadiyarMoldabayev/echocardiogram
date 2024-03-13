@@ -1,0 +1,1 @@
+survival,age,fractionalshortening,epss,lvdd,wallmotion-score,wallmotion-index,mult,pericardialeffusion
