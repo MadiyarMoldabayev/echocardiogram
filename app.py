@@ -4,10 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import xgboost
 import matplotlib.pyplot as plt
-from flask import Flask, request, jsonify
 
-# Initialize Flask app
-app = Flask(__name__)
 
 # Load the original data
 data = pd.read_csv('echocardiogram.csv')
@@ -69,38 +66,6 @@ scaler = StandardScaler().fit(data1[continuous_features])
 # Load the trained XGBoost model
 model = xgboost.XGBClassifier()
 model.load_model("xgboost_model.json")  # Replace "xgboost_model.bin" with the actual file name of your model
-
-# Define the features required for prediction
-@app.route('/api/predict', methods=['POST'])
-def predict_api():
-    # Get JSON data from request
-    request_data = request.json
-    
-    # Extract features from JSON
-    features = [
-        request_data['survival'],
-        request_data['age'],
-        request_data['fractionalshortening'],
-        request_data['epss'],
-        request_data['lvdd'],
-        request_data['wallmotion_score'],
-        request_data['wallmotion_index'],
-        request_data['mult'],
-        request_data['pericardialeffusion']
-    ]
-
-    # Convert pericardial effusion to binary
-    features[-1] = 1 if features[-1] == "Present" else 0
-
-    # Standardize features
-    features = np.array(features).reshape(1, -1)
-    features = scaler.transform(features)
-
-    # Make prediction
-    prediction = model.predict(features)
-
-    # Return prediction as JSON response
-    return jsonify({"prediction": int(prediction[0])})
 
 # Create the Streamlit web app
 def main():

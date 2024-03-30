@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Prediction</title>
+</head>
+<body>
+    <h1>Enter Patient Data</h1>
+    <form action="/predict/" method="post">
+        <label for="survival">Survival (9-31):</label>
+        <input type="number" id="survival" name="survival" required><br><br>
+        
+        <label for="age">Age (45-81):</label>
+        <input type="number" id="age" name="age" required><br><br>
+        
+        <label for="pericardialeffusion">Pericardial Effusion:</label>
+        <input type="checkbox" id="pericardialeffusion" name="pericardialeffusion"><br><br>
+        
+        <label for="fractionalshortening">Fractional Shortening (0.0-0.5):</label>
+        <input type="number" step="0.01" id="fractionalshortening" name="fractionalshortening" required><br><br>
+        
+        <label for="epss">EPSS (0.0-27.0):</label>
+        <input type="number" step="0.01" id="epss" name="epss" required><br><br>
+        
+        <label for="lvdd">LVDD (3.0-7.0):</label>
+        <input type="number" step="0.01" id="lvdd" name="lvdd" required><br><br>
+        
+        <label for="wallmotion_score">Wall Motion Score (5-24):</label>
+        <input type="number" id="wallmotion_score" name="wallmotion_score" required><br><br>
+        
+        <label for="wallmotion_index">Wall Motion Index (1.0-3.0):</label>
+        <input type="number" step="0.01" id="wallmotion_index" name="wallmotion_index" required><br><br>
+        
+        <label for="mult">Mult (0.5-1.0):</label>
+        <input type="number" step="0.01" id="mult" name="mult" required><br><br>
+        
+        <input type="submit" value="Predict">
+    </form>
+</body>
+</html>

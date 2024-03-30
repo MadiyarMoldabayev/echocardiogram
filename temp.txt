@@ -1,1 +1,5 @@
-survival,age,fractionalshortening,epss,lvdd,wallmotion-score,wallmotion-index,mult,pericardialeffusion
+ngrok config add-authtoken 2eAVyS6yIzT0FFC464CR6S2V4Me_5rJFKuGRQvfeCWG44etqj
+ngrok config add-authtoken <TOKEN>
+ngrok http http://127.0.0.1:8000/
+
+
